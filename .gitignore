@@ -1,0 +1,34 @@
+# General
+.DS_Store
+.env
+.env.*
+*.log
+.cache
+.idea/
+.vscode/
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Docker / local state
+docker-compose.override.yml
+.env.local
+mongo_data/
+
+# Build outputs
+dist/
+build/
+
+# OS
+Thumbs.db
+ehthumbs.db

@@ -1,0 +1,1 @@
+# Mapper and reducer use only Python stdlib; requirements kept for completeness
