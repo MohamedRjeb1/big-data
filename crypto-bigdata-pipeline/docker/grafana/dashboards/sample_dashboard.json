@@ -1,0 +1,75 @@
+{
+  "id": null,
+  "uid": "crypto-dashboard",
+  "title": "Crypto Aggregation Dashboard",
+  "tags": ["crypto", "influxdb", "spark"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Average Price by Symbol",
+      "id": 1,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "InfluxDB"
+      },
+      "targets": [
+        {
+          "query": "SELECT mean(\"avg_price\") FROM \"crypto_agg\" WHERE $timeFilter GROUP BY time($__interval), \"symbol\" fill(null)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Sum Volume by Symbol",
+      "id": 2,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "InfluxDB"
+      },
+      "targets": [
+        {
+          "query": "SELECT sum(\"sum_volume\") FROM \"crypto_agg\" WHERE $timeFilter GROUP BY time($__interval), \"symbol\" fill(null)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Min / Max Price",
+      "id": 3,
+      "datasource": {
+        "type": "influxdb",
+        "uid": "InfluxDB"
+      },
+      "targets": [
+        {
+          "query": "SELECT min(\"min_price\"), max(\"max_price\") FROM \"crypto_agg\" WHERE $timeFilter GROUP BY time($__interval) fill(null)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+FROM jupyter/pyspark-notebook:latest
+
+USER root
+# installer pymongo pour foreachBatch
+RUN pip install --no-cache-dir pymongo==4.15.3
+
+# (optionnel) ajouter utilitaires
+RUN apt-get update && apt-get install -y netcat curl
+
+USER $NB_UID
+WORKDIR /home/jovyan/work

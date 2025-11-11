@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:9092,EXTERNAL://localhost:29092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+
+  mongo:
+    image: mongo:6.0
+    command: ["mongod","--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    depends_on:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: pass
+    ports:
+      - "8081:8081"
+
+  spark:
+    image: jupyter/pyspark-notebook:latest
+    working_dir: /home/jovyan/work
+    volumes:
+      - ./spark:/home/jovyan/work:rw
+    ports:
+      - "8888:8888"
+      - "4040:4040"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - KAFKA_BOOTSTRAP=kafka:9092
+    depends_on:
+      - kafka
+      - mongo
+
+  producer:
+    image: python:3.10-slim
+    working_dir: /app
+    volumes:
+      - ./producer:/producer:ro
+      - ./data:/data:ro
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP=kafka:9092
+      - CSV_PATH=/data/crypto.csv
+      - PRODUCER_DELAY=0.01
+    command: ["bash","-lc","pip install --no-cache-dir kafka-python && python /producer/producer.py"]
+
+  kafka-python-consumer:
+    image: python:3.10-slim
+    working_dir: /app
+    volumes:
+      - ./docker/kafka_consumer:/app:ro
+    depends_on:
+      - kafka
+    entrypoint: ["/bin/bash","-lc"]
+    command: "pip install --no-cache-dir kafka-python && python consumer.py"
+    restart: 'no'
+
+  influxdb:
+    image: influxdb:1.8
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb
+    environment:
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+
+  grafana:
+    image: grafana/grafana:9.5.0
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  mongo_data:

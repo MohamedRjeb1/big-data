@@ -1,0 +1,11 @@
+exit
+db.getSiblingDB('crypto').realtime.find().sort({_id:-1}).limit(5).toArray()
+exit
+db.getSiblingDB('crypto').realtime.find().sort({_id:-1}).limit(5).toArray()
+exit
+db.getSiblingDB('crypto').realtime.find().sort({_id: -1}).limit(10)
+exit
+db.crypto.realtime.find().sort({ _id: -1 }).limit(10)
+db.crypto.find().sort({ _id: -1 }).limit(10)
+db.crypto_prices.find().sort({ _id: -1 }).limit(10)
+use crypto_db
